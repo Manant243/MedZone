@@ -1,6 +1,8 @@
 const mongoose = require('mongoose')
+const request = require('request');
 const Doctor = require('../models/doctorModel.js')
 const Symptom = require('../models/symptomModel.js')
+const {getDistancedata} = require('../distance.js')
 
 
 const getDoctors = async (req, res) => {
@@ -37,10 +39,10 @@ const getDoctors = async (req, res) => {
 
     const mapArray = Array.from(map.keys()).sort((a, b) => {
         if (map.get(a) < map.get(b)) {
-          return -1;
+          return 1;
         } 
         else if (map.get(a) > map.get(b)) {
-          return 1;
+          return -1;
         } 
         else {
           return 0;
@@ -62,17 +64,19 @@ const getDoctors = async (req, res) => {
         const key = iterator.next();
         const value = sortedMap.get(key.value);
 
-        console.log(key);
-
         try{
             const doc = await Doctor.findById(key.value)
+            const doctorlocation = doc.Address
+            
+            const locationdata = await getDistancedata(doctorlocation, location);
+
             const object = {
                 Name : doc.Name,
                 Relief : doc.Relief,
                 Address : doc.Address,
                 Symptomps : doc.Symptomps,
                 Matched : value,
-                Distance : 0
+                Distance : locationdata
             }
 
             mainObject[`object${index}`] = object;
