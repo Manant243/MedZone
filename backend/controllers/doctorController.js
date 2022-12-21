@@ -5,12 +5,20 @@ const Symptom = require('../models/symptomModel.js')
 
 const getDoctors = async (req, res) => {
     const {Issues, location} = req.body
+    res.status(400).json()
 
+    console.log(Issues)
     const map = new Map();
 
     async function fun(data){
-        const cur = await Symptom.findOne({Symptom : data})
-        const vecs = cur.ids 
+        var vecs
+        try {
+            const cur = await Symptom.findOne({Symptom : data}); 
+            vecs = cur.ids;
+        } 
+        catch(err) {
+            console.log(err.message);
+        }
 
         vecs.forEach((vec) => {
             if(map.has(vec)){
@@ -19,51 +27,64 @@ const getDoctors = async (req, res) => {
             else{
                 map.set(vec, 1);
             }
-        })
+        });
 
     }
 
-    Issues.forEach((Issue) => {
-        fun(Issue)
-    })
+    const funPromises = Issues.map((Issue) => fun(Issue));
+    await Promise.all(funPromises);
 
-    const sortedmap = Array.from(map.keys()).sort((a, b) => {
-        if(map.get(a) < map.get(b)){
-            return -1;
-        }
-        else if(map.get(a) > map.get(b)){
-            return 1;
-        }
-        else{
-            return 0;
+
+    const mapArray = Array.from(map.keys()).sort((a, b) => {
+        if (map.get(a) < map.get(b)) {
+          return -1;
+        } 
+        else if (map.get(a) > map.get(b)) {
+          return 1;
+        } 
+        else {
+          return 0;
         }
     });
 
-    const iterator = sortedmap.keys();
-    let index = 0;
-    const Obj = {}
-
-    while(index < 10 && iterator.hasNext()) {
-        const key = iterator.next();
-
-        const value = sortedmap.get(key);
-        const doc = Doctor.findOne({_id : key})
-
-        const obj = {
-            Name : doc.Name,
-            Relief : doc.Relief,
-            Address : doc.Address,
-            Symptomps : doc.Symptomps,
-            Matched : value,
-            Distance : 0
-        }
-
-        Obj.push(obj)
-        
-        i++;
-    }
+    const entries = mapArray.map(key => [key, map.get(key)]);
+    const sortedMap = new Map(entries);
     
-    res.status(400).json(Obj)
+    const size = sortedMap.size
+    console.log(size);
+    console.log(sortedMap)
+
+    const iterator = sortedMap.keys();
+    const mainObject = {}
+
+    for(let index = 0; index < Math.min(size, 10); index++){
+
+        const key = iterator.next();
+        const value = sortedMap.get(key.value);
+
+        console.log(key);
+
+        try{
+            const doc = await Doctor.findById(key.value)
+            const object = {
+                Name : doc.Name,
+                Relief : doc.Relief,
+                Address : doc.Address,
+                Symptomps : doc.Symptomps,
+                Matched : value,
+                Distance : 0
+            }
+
+            mainObject[`object${index}`] = object;
+        }
+        catch (err){
+            console.log(err.message);
+        }
+  
+    }
+
+    console.log(mainObject);
+    
 }
 
 const singleDoctor = async (req, res) => {
@@ -74,8 +95,11 @@ const postDoctor = async (req, res) => {
     const {Name, Relief, Address, Symptomps} = req.body
     const name = Name
 
+    var itemId
     try{
-        const doctor = await Doctor.create({Name, Relief, Address, Symptomps})
+        const doctor = new Doctor({Name, Relief, Address, Symptomps})
+        const wait = await doctor.save()
+        itemId = wait._id
         res.status(201).json(doctor)
 
     } catch (error) {
@@ -83,8 +107,7 @@ const postDoctor = async (req, res) => {
     }
 
     const symps = Symptomps
-    const result = await Doctor.findOne({ Name: name});
-    const idString = result._id.toString();
+    const idString = itemId.toString();
 
     
     const arr = []
