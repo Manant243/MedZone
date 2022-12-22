@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const request = require('request');
 const Doctor = require('../models/doctorModel.js')
 const Symptom = require('../models/symptomModel.js')
 const {getDistancedata} = require('../distance.js')
@@ -7,9 +6,7 @@ const {getDistancedata} = require('../distance.js')
 
 const getDoctors = async (req, res) => {
     const {Issues, location} = req.body
-    res.status(400).json()
 
-    console.log(Issues)
     const map = new Map();
 
     async function fun(data){
@@ -53,8 +50,6 @@ const getDoctors = async (req, res) => {
     const sortedMap = new Map(entries);
     
     const size = sortedMap.size
-    console.log(size);
-    console.log(sortedMap)
 
     const iterator = sortedMap.keys();
     const mainObject = {}
@@ -68,13 +63,18 @@ const getDoctors = async (req, res) => {
             const doc = await Doctor.findById(key.value)
             const doctorlocation = doc.Address
             
-            const locationdata = await getDistancedata(doctorlocation, location);
+            var locationdata = await getDistancedata(doctorlocation, location);
+            locationdata /= 1000;
 
             const object = {
-                Name : doc.Name,
+                Name1 : doc.Name1,
+                Name2 : doc.Name2,
                 Relief : doc.Relief,
+                Age : doc.Age,
+                Gender : doc.Gender,
                 Address : doc.Address,
                 Symptomps : doc.Symptomps,
+                Description : doc.Description,
                 Matched : value,
                 Distance : locationdata
             }
@@ -87,7 +87,7 @@ const getDoctors = async (req, res) => {
   
     }
 
-    console.log(mainObject);
+    res.status(400).json(mainObject);
     
 }
 
@@ -96,17 +96,18 @@ const singleDoctor = async (req, res) => {
 }
 
 const postDoctor = async (req, res) => {
-    const {Name, Relief, Address, Symptomps} = req.body
-    const name = Name
+    const {Name1, Name2, Relief, Age, Gender, Address, Symptomps, Description} = req.body
 
     var itemId
+
     try{
-        const doctor = new Doctor({Name, Relief, Address, Symptomps})
+        const doctor = new Doctor({Name1, Name2, Relief, Age, Gender, Address, Symptomps, Description})
         const wait = await doctor.save()
         itemId = wait._id
         res.status(201).json(doctor)
 
-    } catch (error) {
+    } 
+    catch (error) {
         res.status(400).json({error : error.message})
     }
 
@@ -141,7 +142,6 @@ const postDoctor = async (req, res) => {
         run(symp)
     })
 }
-
 
 
 module.exports = {

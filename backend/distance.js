@@ -1,5 +1,6 @@
+require('dotenv').config()
 const request = require("request");
-const MAPBOX_ACCESS_TOKEN = "pk.eyJ1IjoibWFuYW50IiwiYSI6ImNsYnh5dWdvdTFjYWMzbm55Y3FzOGdodGoifQ.JZTSHeSgM2xXetzpR1BCQA";
+const MAPBOX_ACCESS_TOKEN = process.env.API_KEY;
 
 async function getDistancedata(doctorlocation, location) {
   
