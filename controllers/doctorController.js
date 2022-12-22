@@ -87,7 +87,7 @@ const getDoctors = async (req, res) => {
   
     }
 
-    res.status(400).json(mainObject);
+    res.status(200).json(mainObject);
     
 }
 
