@@ -67,8 +67,8 @@ const getDoctors = async (req, res) => {
             locationdata /= 1000;
 
             const object = {
-                Name1 : doc.Name1,
-                Name2 : doc.Name2,
+                DoctorName : doc.DoctorName,
+                UserName : doc.UserName,
                 Relief : doc.Relief,
                 Age : doc.Age,
                 Gender : doc.Gender,
@@ -96,12 +96,12 @@ const singleDoctor = async (req, res) => {
 }
 
 const postDoctor = async (req, res) => {
-    const {Name1, Name2, Relief, Age, Gender, Address, Symptomps, Description} = req.body
+    const {DoctorName, UserName, Relief, Age, Gender, Address, Symptomps, Description} = req.body
 
     var itemId
 
     try{
-        const doctor = new Doctor({Name1, Name2, Relief, Age, Gender, Address, Symptomps, Description})
+        const doctor = new Doctor({DoctorName, UserName, Relief, Age, Gender, Address, Symptomps, Description})
         const wait = await doctor.save()
         itemId = wait._id
         res.status(201).json(doctor)
