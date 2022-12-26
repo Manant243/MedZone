@@ -12,21 +12,25 @@ const getDoctors = async (req, res) => {
     async function fun(data){
         var vecs
         try {
-            const cur = await Symptom.findOne({Symptom : data}); 
-            vecs = cur.ids;
+            const cur = await Symptom.findOne({Symptom : { $regex: data, $options: 'i' }}); 
+            if(cur){
+                vecs = cur.ids;
+            }
         } 
         catch(err) {
             console.log(err.message);
         }
 
-        vecs.forEach((vec) => {
-            if(map.has(vec)){
-                map.set(vec, map.get(vec)+1);
-            }
-            else{
-                map.set(vec, 1);
-            }
-        });
+        if(vecs){
+            vecs.forEach((vec) => {
+                if(map.has(vec)){
+                    map.set(vec, map.get(vec)+1);
+                }
+                else{
+                    map.set(vec, 1);
+                }
+            });
+        }
 
     }
 
@@ -50,9 +54,9 @@ const getDoctors = async (req, res) => {
     const sortedMap = new Map(entries);
     
     const size = sortedMap.size
-
     const iterator = sortedMap.keys();
-    const mainObject = {}
+
+    var doctorsArray = [];
 
     for(let index = 0; index < Math.min(size, 10); index++){
 
@@ -72,14 +76,15 @@ const getDoctors = async (req, res) => {
                 Relief : doc.Relief,
                 Age : doc.Age,
                 Gender : doc.Gender,
+                Mobile : doc.Mobile || null,
                 Address : doc.Address,
                 Symptomps : doc.Symptomps,
-                Description : doc.Description,
+                Description : doc.Description || null,
                 Matched : value,
                 Distance : locationdata
             }
 
-            mainObject[`object${index}`] = object;
+            doctorsArray.push(object);
         }
         catch (err){
             console.log(err.message);
@@ -87,7 +92,8 @@ const getDoctors = async (req, res) => {
   
     }
 
-    res.status(200).json(mainObject);
+    console.log(doctorsArray);
+    res.status(200).json(doctorsArray);
     
 }
 
@@ -96,53 +102,61 @@ const singleDoctor = async (req, res) => {
 }
 
 const postDoctor = async (req, res) => {
-    const {DoctorName, UserName, Relief, Age, Gender, Address, Symptomps, Description} = req.body
+    const {DoctorName, UserName, Relief, Age, Gender, Mobile, Address, Symptomps, Description} = req.body
 
     var itemId
-
-    try{
-        const doctor = new Doctor({DoctorName, UserName, Relief, Age, Gender, Address, Symptomps, Description})
-        const wait = await doctor.save()
-        itemId = wait._id
-        res.status(201).json(doctor)
-
-    } 
-    catch (error) {
-        res.status(400).json({error : error.message})
-    }
-
-    const symps = Symptomps
-    const idString = itemId.toString();
-
     
-    const arr = []
-    arr.push(idString)
+    const exist = await Doctor.findOne({DoctorName : { $regex: DoctorName, $options: 'i' }, 
+    UserName : { $regex: UserName, $options: 'i' }, 
+    Symptomps: { $in: Symptomps.map(symptomp => new RegExp(symptomp, 'i')) }});
 
-    async function run(data){
-        const user = await Symptom.findOne({Symptom : data})
-    
-        if(!user){
-            const symp = new Symptom({Symptom : data, ids : arr})
-            await symp.save()
-        }
-        else{
-            const update = { $push: { ids: idString}};
-            Symptom.updateOne({ _id: mongoose.Types.ObjectId(user).toString() }, update, 
-            function(err, doc) {
-                if (err) {
-                    console.log(err.message)
-                } else {
-                    console.log(user)
-                }
-            });
-        }
+    if(exist){
+        res.status(400).json({error : 'This post already exists'})
     }
-
-    symps.forEach((symp) => { 
-        run(symp)
-    })
+    else{
+        try{
+            const doctor = new Doctor({DoctorName, UserName, Relief, Age, Gender, Mobile, Address, Symptomps, Description})
+            const wait = await doctor.save()
+            itemId = wait._id
+            res.status(201).json(doctor)
+        }
+        catch(error){
+            res.status(400).json({error : error.message})
+        }
+    
+        const symps = Symptomps
+        const idString = itemId.toString();
+    
+        
+        const arr = []
+        arr.push(idString)
+    
+        async function run(data){
+            const user = await Symptom.findOne({Symptom : { $regex: data, $options: 'i' }})
+        
+            if(!user){
+                const symp = new Symptom({Symptom : data, ids : arr})
+                await symp.save()
+            }
+            else{
+                const update = { $push: { ids: idString}};
+                Symptom.updateOne({ _id: mongoose.Types.ObjectId(user).toString() }, update, 
+                function(err, doc) {
+                    if (err) {
+                        console.log(err.message)
+                    } else {
+                        console.log(user)
+                    }
+                });
+            }
+        }
+    
+        symps.forEach((symp) => { 
+            run(symp)
+        })
+    }
+    
 }
-
 
 module.exports = {
     postDoctor,

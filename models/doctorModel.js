@@ -23,6 +23,9 @@ const docSchema = new Schema({
         type: String,
         required: true
     },
+    Mobile: {
+        type: String
+    },
     Address: {
         type: String,
         required: true
@@ -33,7 +36,6 @@ const docSchema = new Schema({
     },
     Description: {
         type: String,
-        required: true
     }
 }, {timestamps: true})
 
