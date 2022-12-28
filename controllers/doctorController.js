@@ -5,13 +5,16 @@ const {getDistancedata} = require('../distance.js')
 
 
 const getDoctors = async (req, res) => {
-    const {Issues, location} = req.body
+    const Issues = req.query.array;
+    const location = req.query.string;
+
+    console.log(Issues);
     
     if(!Issues || Issues.length == 0){
         res.status(400).json({error: "Cannot access the issues array"})
     }
     else if(!location){
-        res.status(400).json({error: "Cannot acces location"})
+        res.status(400).json({error: "Cannot access location"})
     }
     else{
         const map = new Map();
@@ -83,9 +86,9 @@ const getDoctors = async (req, res) => {
                     Relief : doc.Relief,
                     Age : doc.Age,
                     Gender : doc.Gender,
-                    Mobile : doc.Mobile || null,
+                    Contact : doc.Contact || null,
                     Address : doc.Address,
-                    Symptomps : doc.Symptomps,
+                    Symptoms : doc.Symptoms,
                     Description : doc.Description || null,
                     Matched : value,
                     Distance : locationdata
@@ -110,20 +113,21 @@ const singleDoctor = async (req, res) => {
 }
 
 const postDoctor = async (req, res) => {
-    const {DoctorName, UserName, Relief, Age, Gender, Mobile, Address, Symptomps, Description} = req.body
+    const {DoctorName, UserName, Relief, Age, Gender, Contact, Address, Symptoms, Description} = req.body
+    console.log(req.body);
 
     var itemId
     
     const exist = await Doctor.findOne({DoctorName : { $regex: DoctorName, $options: 'i' }, 
     UserName : { $regex: UserName, $options: 'i' }, 
-    Symptomps: { $in: Symptomps.map(symptomp => new RegExp(symptomp, 'i')) }});
+    Symptoms: { $in: Symptoms.map(symptom => new RegExp(symptom, 'i')) }});
 
     if(exist){
         res.status(400).json({error : 'This post already exists'})
     }
     else{
         try{
-            const doctor = new Doctor({DoctorName, UserName, Relief, Age, Gender, Mobile, Address, Symptomps, Description})
+            const doctor = new Doctor({DoctorName, UserName, Relief, Age, Gender, Contact, Address, Symptoms, Description})
             const wait = await doctor.save()
             itemId = wait._id
             res.status(201).json(doctor)
@@ -132,7 +136,7 @@ const postDoctor = async (req, res) => {
             res.status(400).json({error : error.message})
         }
     
-        const symps = Symptomps
+        const symps = Symptoms
         const idString = itemId.toString();
     
         

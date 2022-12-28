@@ -8,7 +8,7 @@ const {
 const Doctor = require('../models/doctorModel')
 const router = express.Router()
 
-router.post('/get', getDoctors)
+router.get('/get', getDoctors)
 
 router.get('/:id', singleDoctor)
 
@@ -18,6 +18,4 @@ router.patch('/:id', (req, res) => {
     res.json({mssg : 'Update a doctor'})
 })
 
-
 module.exports = router
-

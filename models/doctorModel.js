@@ -23,14 +23,14 @@ const docSchema = new Schema({
         type: String,
         required: true
     },
-    Mobile: {
+    Contact: {
         type: String
     },
     Address: {
         type: String,
         required: true
     },
-    Symptomps: {
+    Symptoms: {
         type: Array,
         required: true
     },
