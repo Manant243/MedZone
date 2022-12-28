@@ -6,94 +6,102 @@ const {getDistancedata} = require('../distance.js')
 
 const getDoctors = async (req, res) => {
     const {Issues, location} = req.body
-
-    const map = new Map();
-
-    async function fun(data){
-        var vecs
-        try {
-            const cur = await Symptom.findOne({Symptom : { $regex: data, $options: 'i' }}); 
-            if(cur){
-                vecs = cur.ids;
-            }
-        } 
-        catch(err) {
-            console.log(err.message);
-        }
-
-        if(vecs){
-            vecs.forEach((vec) => {
-                if(map.has(vec)){
-                    map.set(vec, map.get(vec)+1);
-                }
-                else{
-                    map.set(vec, 1);
-                }
-            });
-        }
-
-    }
-
-    const funPromises = Issues.map((Issue) => fun(Issue));
-    await Promise.all(funPromises);
-
-
-    const mapArray = Array.from(map.keys()).sort((a, b) => {
-        if (map.get(a) < map.get(b)) {
-          return 1;
-        } 
-        else if (map.get(a) > map.get(b)) {
-          return -1;
-        } 
-        else {
-          return 0;
-        }
-    });
-
-    const entries = mapArray.map(key => [key, map.get(key)]);
-    const sortedMap = new Map(entries);
     
-    const size = sortedMap.size
-    const iterator = sortedMap.keys();
+    if(!Issues || Issues.length == 0){
+        res.status(400).json({error: "Cannot access the issues array"})
+    }
+    else if(!location){
+        res.status(400).json({error: "Cannot acces location"})
+    }
+    else{
+        const map = new Map();
 
-    var Post = [];
-
-    for(let index = 0; index < Math.min(size, 10); index++){
-
-        const key = iterator.next();
-        const value = sortedMap.get(key.value);
-
-        try{
-            const doc = await Doctor.findById(key.value)
-            const doctorlocation = doc.Address
-            
-            var locationdata = await getDistancedata(doctorlocation, location);
-            locationdata /= 1000;
-
-            const object = {
-                DoctorName : doc.DoctorName,
-                UserName : doc.UserName,
-                Relief : doc.Relief,
-                Age : doc.Age,
-                Gender : doc.Gender,
-                Mobile : doc.Mobile || null,
-                Address : doc.Address,
-                Symptomps : doc.Symptomps,
-                Description : doc.Description || null,
-                Matched : value,
-                Distance : locationdata
+        async function fun(data){
+            var vecs
+            try {
+                const cur = await Symptom.findOne({Symptom : { $regex: data, $options: 'i' }}); 
+                if(cur){
+                    vecs = cur.ids;
+                }
+            } 
+            catch(err) {
+                console.log(err.message);
             }
 
-            Post.push(object);
-        }
-        catch (err){
-            console.log(err.message);
-        }
-  
-    }
+            if(vecs){
+                vecs.forEach((vec) => {
+                    if(map.has(vec)){
+                        map.set(vec, map.get(vec)+1);
+                    }
+                    else{
+                        map.set(vec, 1);
+                    }
+                });
+            }
 
-    const Object = {Post}
-    res.status(200).json(Object);
+        }
+
+        const funPromises = Issues.map((Issue) => fun(Issue));
+        await Promise.all(funPromises);
+        
+
+        const mapArray = Array.from(map.keys()).sort((a, b) => {
+            if (map.get(a) < map.get(b)) {
+            return 1;
+            } 
+            else if (map.get(a) > map.get(b)) {
+            return -1;
+            } 
+            else {
+            return 0;
+            }
+        });
+
+        const entries = mapArray.map(key => [key, map.get(key)]);
+        const sortedMap = new Map(entries);
+        
+        const size = sortedMap.size
+        const iterator = sortedMap.keys();
+
+        var Post = [];
+
+        for(let index = 0; index < Math.min(size, 10); index++){
+
+            const key = iterator.next();
+            const value = sortedMap.get(key.value);
+
+            try{
+                const doc = await Doctor.findById(key.value)
+                const doctorlocation = doc.Address
+                
+                var locationdata = await getDistancedata(doctorlocation, location);
+                locationdata /= 1000;
+
+                const object = {
+                    DoctorName : doc.DoctorName,
+                    UserName : doc.UserName,
+                    Relief : doc.Relief,
+                    Age : doc.Age,
+                    Gender : doc.Gender,
+                    Mobile : doc.Mobile || null,
+                    Address : doc.Address,
+                    Symptomps : doc.Symptomps,
+                    Description : doc.Description || null,
+                    Matched : value,
+                    Distance : locationdata
+                }
+
+                Post.push(object);
+            }
+            catch (err){
+                console.log(err.message);
+            }
+    
+        }
+
+        const Object = {Post}
+        res.status(200).json(Object);
+    }
     
 }
 
