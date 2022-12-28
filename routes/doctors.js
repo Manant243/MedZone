@@ -8,7 +8,7 @@ const {
 const Doctor = require('../models/doctorModel')
 const router = express.Router()
 
-router.get('/get', getDoctors)
+router.post('/get', getDoctors)
 
 router.get('/:id', singleDoctor)
 
