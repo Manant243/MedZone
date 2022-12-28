@@ -56,7 +56,7 @@ const getDoctors = async (req, res) => {
     const size = sortedMap.size
     const iterator = sortedMap.keys();
 
-    var doctorsArray = [];
+    var Post = [];
 
     for(let index = 0; index < Math.min(size, 10); index++){
 
@@ -84,7 +84,7 @@ const getDoctors = async (req, res) => {
                 Distance : locationdata
             }
 
-            doctorsArray.push(object);
+            Post.push(object);
         }
         catch (err){
             console.log(err.message);
@@ -92,8 +92,8 @@ const getDoctors = async (req, res) => {
   
     }
 
-    console.log(doctorsArray);
-    res.status(200).json(doctorsArray);
+    const Object = {Post}
+    res.status(200).json(Object);
     
 }
 
