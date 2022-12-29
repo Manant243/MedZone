@@ -114,13 +114,13 @@ const singleDoctor = async (req, res) => {
 }
 
 const postDoctor = async (req, res) => {
-    console.log(req.body);
+    console.log(req);
     const {DoctorName, UserName, Relief, Age, Gender, Contact, Address, Symptoms, Description} = req.body
     console.log(req.body);
 
     var itemId
 
-    const exist = exist = await Doctor.findOne({DoctorName : { $regex: DoctorName, $options: 'i' }, 
+    const exist = await Doctor.findOne({DoctorName : { $regex: DoctorName, $options: 'i' }, 
     UserName : { $regex: UserName, $options: 'i' }, 
     Symptoms: { $in: Symptoms.map(symptom => new RegExp(symptom, 'i')) }});
     
