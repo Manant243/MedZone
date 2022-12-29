@@ -115,6 +115,8 @@ const singleDoctor = async (req, res) => {
 
 const postDoctor = async (req, res) => {
     console.log(req);
+    return res.send()
+
     const {DoctorName, UserName, Relief, Age, Gender, Contact, Address, Symptoms, Description} = req.body
     console.log(req.body);
 
