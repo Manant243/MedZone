@@ -2,6 +2,7 @@ require('dotenv').config()
 const Doctor = require('./models/doctorModel.js')
 const Symptom = require('./models/symptomModel.js')
 
+const cors = require('cors');
 const express = require('express')
 const mongoose = require('mongoose')
 const doctors = require('./routes/doctors.js')
@@ -14,6 +15,10 @@ app.use((req, res, next) => {
     console.log(req.path, req.method)
     next()
 })
+
+app.use(cors({
+  methods : ['GET', 'POST']
+}));
 
 app.use('/api/doctors', doctors)
 
