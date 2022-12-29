@@ -49,14 +49,14 @@ const getDoctors = async (req, res) => {
         
 
         const mapArray = Array.from(map.keys()).sort((a, b) => {
-            if (map.get(a) < map.get(b)) {
-            return 1;
+            if(map.get(a) < map.get(b)) {
+                return 1;
             } 
-            else if (map.get(a) > map.get(b)) {
-            return -1;
+            else if(map.get(a) > map.get(b)) {
+                return -1;
             } 
-            else {
-            return 0;
+            else{
+                return 0;
             }
         });
 
@@ -104,6 +104,7 @@ const getDoctors = async (req, res) => {
 
         const Object = {Post}
         res.status(200).json(Object);
+
     }
     
 }
@@ -113,14 +114,16 @@ const singleDoctor = async (req, res) => {
 }
 
 const postDoctor = async (req, res) => {
+    console.log(req.body);
     const {DoctorName, UserName, Relief, Age, Gender, Contact, Address, Symptoms, Description} = req.body
     console.log(req.body);
 
     var itemId
-    
-    const exist = await Doctor.findOne({DoctorName : { $regex: DoctorName, $options: 'i' }, 
+
+    const exist = exist = await Doctor.findOne({DoctorName : { $regex: DoctorName, $options: 'i' }, 
     UserName : { $regex: UserName, $options: 'i' }, 
     Symptoms: { $in: Symptoms.map(symptom => new RegExp(symptom, 'i')) }});
+    
 
     if(exist){
         res.status(400).json({error : 'This post already exists'})
