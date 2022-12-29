@@ -18,6 +18,7 @@ app.use((req, res, next) => {
 
 app.use(cors({
   origin : "*",
+  methods : ["GET", "POST"]
 }));
 
 app.use('/api/doctors', doctors)
