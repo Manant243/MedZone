@@ -8,6 +8,10 @@ const getDoctors = async (req, res) => {
     const Issues = req.query.array;
     const location = req.query.string;
 
+    if(typeof(Issues) == 'string'){
+        Issues = JSON.parse(req.query.array);
+    }
+
     console.log(Issues);
     
     if(!Issues || Issues.length == 0){
