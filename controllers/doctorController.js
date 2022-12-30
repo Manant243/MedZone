@@ -21,6 +21,7 @@ const getDoctors = async (req, res) => {
                 answer = '';
             }
         }
+        arraytype.push(answer);
         Issues = arraytype
     }
 
