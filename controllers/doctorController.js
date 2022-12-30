@@ -5,11 +5,23 @@ const {getDistancedata} = require('../distance.js')
 
 
 const getDoctors = async (req, res) => {
-    const Issues = req.query.array;
+    var Issues = req.query.array;
     const location = req.query.string;
 
+    var arraytype = []
+    var answer = ''
+
     if(typeof(Issues) == 'string'){
-        Issues = JSON.parse(req.query.array);
+        for(let i = 0; i < Issues.length; i++){
+            if(Issues[i] != ','){
+                answer += Issues[i];
+            }
+            else{
+                arraytype.push(answer);
+                answer = '';
+            }
+        }
+        Issues = arraytype
     }
 
     console.log(Issues);
