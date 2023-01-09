@@ -24,7 +24,7 @@ const getDoctors = async (req, res) => {
         arraytype.push(answer);
         Issues = arraytype
     }
-
+ 
     console.log(Issues);
     
     if(!Issues || Issues.length == 0){
@@ -40,6 +40,7 @@ const getDoctors = async (req, res) => {
             var vecs
             try {
                 const cur = await Symptom.findOne({Symptom : { $regex: data, $options: 'i' }}); 
+                console.log(cur.ids);
                 if(cur){
                     vecs = cur.ids;
                 }
@@ -147,6 +148,7 @@ const postDoctor = async (req, res) => {
         res.status(400).json({error : 'This post already exists'})
     }
     else{
+        
         try{
             const doctor = new Doctor({DoctorName, UserName, Relief, Age, Gender, Contact, Address, Symptoms, Description})
             const wait = await doctor.save()
